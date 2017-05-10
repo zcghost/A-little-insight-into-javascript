@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	  <meta name="Author" content="zhenchuan.wang">
+	  <meta name="Keywords" content="">
+	  <meta name="Description" content="用原生js实现操作元素的样式">
+	  <meta charset="utf-8">
+	  <title>用原生的js操作DOM属性，改变元素的样式属性并添加鼠标拖拽示例</title>
+	  <!-- 内联样式 -->
+	  <style type="text/css">
+	  	        /*默认重置样式start*/
+	  	        body,h2,p{
+	  	        	margin:0;
+	  	        }
+	  	        a{
+	  	        	text-decoration:none;
+	  	        }
+	  	        /*默认重置样式end*/
+	  	        html,body{
+	  	        	width:100%;
+	  	        	height:100%;
+                    overflow:hidden; /*去除body的滚动条*/
+	  	        }
+	  	        body{
+	  	        	 font:14px/30px "微软雅黑";
+	  	        }
+	  	        h2{
+	  	        	text-align:center;
+	  	        	line-height:40px;
+	  	        }
+	  	        h2 a{
+	  	        	color:#fff;
+	  	        	background:red;
+	  	        	padding:8px;
+	  	        	border-radius:5px;
+	  	        }
+                .fff{
+                    color:#fff;
+                }
+                /*box start*/
+	  	        #box{
+	  	        	width:100px;
+	  	        	height:100px;
+	  	        	border:1px solid #000;
+	  	        	margin:0 0 0 20px;
+                    text-align:center;
+                    line-height:100px;
+	  	        }
+                /*box end*/
+                /*masklayer start*/
+                .masklayer{
+                	 width:100%;
+                	 height:100%;
+                	 background:rgba(0,0,0,0.5);
+                	 position:absolute;
+                	 left:0;
+                	 top:0;
+                     display:none;
+                }
+                /*masklayer end*/
+                /*midbox start*/
+                .midbox{
+                    width:340px;
+                    height:240px;
+                    background:#ddd;
+                    position:absolute;
+                    /*left:50%;
+                    top:50%;
+                    margin-left:-170px;
+                    margin-top:-120px;*/
+                    z-index:1;
+                   /* display:none;*/
+                   visibility: hidden;
+                   cursor:move;
+                    
+                }
+                /*midbox end*/
+                /* 子盒子subcase start*/
+                .subcase{
+                	 width:300px;
+                	 height:205px;
+                	 background:#fff;
+                	 margin:20px auto 20px;
+                }
+                .subcase p{
+                	  font-size:20px;
+                      padding:6px;
+                      overflow:hidden; /*下面元素有浮动，那么记得清除浮动，否则会影响后面的布局注意清除浮动的的方法*/
+                      text-align:center;
+                }
+                .subcase p b{
+                      float:left;
+                }
+                .subcase p span{
+                      border:1px solid #000;
+                      float:left;
+                      margin:0 5px 0;
+                      padding:5px;
+                      cursor:pointer;
+                      font-size:14px;
+                }
+                .subcase p a{
+                      background:red;
+                      color:#fff;
+                      margin:0 10px 0 0;
+                      padding:2px 5px 2px 5px;
+
+                }
+                .subcase p.bg-color span{
+                     padding:5px 11px 5px 10px;
+                }
+                #red{
+                    background:#FF0000;
+                }
+                #yellow{
+                    background:#FFFF00;
+                }
+                #blue{
+                    background:#0765C5;
+                }
+                /*子盒子subcase end*/
+	  </style>
+</head>
+<body>
+         
+         <header>
+         	    <h2>请为左侧的div设置样式:<a href="javascript:;" id="click-set">点击设置</a></h2>
+         </header>
+         <div id="box">box</div>
+         <!-- 遮罩层 -->
+         <div class="masklayer" id="masklayer"></div>
+         <!-- 中间弹出盒子 -->
+         <div class="midbox" id="midbox">
+         	    <div class="subcase">
+         	    	   <p class="bg-color">
+                           <b>请选择背景颜色:</b>
+                           <span id="red" class="fff">红</span>
+                           <span id="yellow" class="fff">黄</span>
+                           <span id="blue" class="fff">蓝</span>
+                       </p>
+         	    	   <p>
+                          <b>请选择宽度(px):</b>
+                          <span id="w200">200</span>
+                          <span id="w300">300</span>
+                          <span id="w400">400</span>
+                       </p>
+         	    	   <p>
+                          <b>请选择高度(px):</b>
+                          <span id="h200">200</span>
+                          <span id="h300">300</span>
+                          <span id="h400">400</span></p>
+         	           <p><a href="javascript:;" id="recover">恢复</a><a href="javascript:;" id="confirm">确认</a></p>
+                </div>
+         </div>
+         <script type="text/javascript">
+         	        
+                      window.onload=function(){
+                            var box,dos,oClickSet,oMasklayer,oMidbox,oRed,oYellow,oBlue,oW200,oW300,oW400,oH200,oH300,oH400,recover,confirm,oBoxDisW,oBoxDisH;  // 一条语句可以声明多条语句
+                            dos = document;                        // 当访问元素的集合时，尽量用局部变量操作，这种从性能上考虑要比上面的好得多                  
+                            oClickSet = dos.getElementById("click-set");   // 获取点击设置按钮元素click-set
+                            oMasklayer = dos.getElementById("masklayer");  // 获取遮罩层元素masklayer
+                            oMidbox = dos.getElementById("midbox");       // 获取弹出遮罩层的中间盒子midbox
+                            oRed = dos.getElementById("red"); 
+                            oYellow = dos.getElementById("yellow");
+                            oBlue = dos.getElementById("blue");   
+                            oBox = dos.getElementById("box");
+                            oW200 = dos.getElementById("w200");
+                            oW300 = dos.getElementById("w300");
+                            oW400 = dos.getElementById("w400");
+                            oH200 = dos.getElementById("h200");
+                            oH300 = dos.getElementById("h300");
+                            oH400 = dos.getElementById("h400");
+                            oRecover = dos.getElementById("recover");
+                            oConfirm = dos.getElementById("confirm");
+                            var selfW = oMidbox.offsetWidth;
+                            var selfH = oMidbox.offsetHeight;
+                            console.log(selfW);  // 当midbox元素是display:none时，它的自身的宽和高度为0,这里比较坑，在js中如果一个元素没有的话,如果要是没有话，那么他的宽高度是0的，如果不这想，那么就隐藏一个元素，也可以用visibility:hidden;,否则的话在下面动态获取宽度时，就会获取不准确，有问题，除非你把selfW，selfH换成具体的宽度高度，那就没有问题了的，但是这种写具体宽高度值的，可拓展性比较差，对于要考虑到后期的拓展性的话，尽量还是用js获取吧，但是jquery中却可以获取它的宽高度啊，这里以后在具体说拉
+                            console.log(selfH);  // 这里为0
+                            var oMidboxL = ((document.documentElement.clientWidth-selfW)/2)+"px";
+                            var oMidboxT = ((document.documentElement.clientHeight-selfH)/2)+"px";
+                            oMidbox.style.left = oMidboxL;
+                            oMidbox.style.top = oMidboxT;
+                    
+                            // 给设置按钮添加点击事件
+                            oClickSet.onclick = function(){                           
+                                   oMasklayer.style.display = "block";                // 当点击设置按钮时，改变遮罩层的样式
+                                   // oMidbox.style.display = "block";                // 中间盒子midbox显示
+                                   oMidbox.style.visibility="visible";                // 用visibility=visibility显示元素
+                            }
+                            // 当窗体发生变化时，也要让midbox它随着窗体变化
+                            window.onresize = function(){
+                                  var oMidboxL = ((document.documentElement.clientWidth-selfW)/2)+"px";
+                                  var oMidboxT = ((document.documentElement.clientHeight-selfH)/2)+"px";
+                                  oMidbox.style.left = oMidboxL;
+                                  oMidbox.style.top = oMidboxT;
+                            }
+                            // 给弹出层的盒子的颜色控件添加事件
+                            oRed.onclick = function(){
+                                 oBox.style.background = "#FF0000";
+                                 oBox.style.color = "#fff";
+                            }
+                            oYellow.onclick = function(){
+                                 oBox.style.background = "#FFFF00";
+                                 oBox.style.color = "#fff";
+                            }
+                             oBlue.onclick = function(){
+                                 oBox.style.background = "#0765C5";
+                                 oBox.style.color = "#0000FF";
+                            }
+                            oW200.onclick = function(){
+                                oBox.style.width ="200px";
+                            }
+                            oW300.onclick = function(){
+                                oBox.style.width ="300px";
+                            }
+                            oW400.onclick = function(){
+                                oBox.style.width ="400px";
+                            }
+                            oH200.onclick = function(){
+                                oBox.style.height = "200px"
+                            }
+                            oH300.onclick = function(){
+                                oBox.style.height = "300px";
+                            }
+                            oH400.onclick = function(){
+                                oBox.style.height= "400px";
+                            }
+                            oRecover.onclick = function(){
+                                oBox.style.background = ""
+                                oBox.style.width = "";
+                                oBox.style.height = "";
+                            }
+                            oConfirm.onclick = function(){
+                                oMasklayer.style.display = "none";
+                                oMidbox.style.display = "none";
+                            }
+                            // 实现拖拽
+                            oMidbox.onmousedown = function(ev){
+                                // 拖动盒子时，会存在bug，文字会选中,影响拖拽不到右侧
+                                if(oMidbox.setCapture){ // 设置全局捕获，当我们给一个元素设置了全局捕获以后，那么该元素就会监听了后续发生的所有事情，就会被当前设置全局捕获元素触发
+                                   oMidbox.setCapture();
+                                       
+                                }
+                                var ev = ev || event;
+                                var disX = ev.clientX-this.offsetLeft
+                                var disY = ev.clientY-this.offsetTop;
+                                
+                                document.onmousemove = function(ev){
+                                    var ev = ev || event;
+                                    var L,T;
+                                    L = ev.clientX-disX;
+                                    T = ev.clientY-disY;
+                                    if(L<0){
+                                       L=0;
+                                    }else if(L>document.documentElement.clientWidth-oMidbox.offsetWidth){
+                                       L = document.documentElement.clientWidth-oMidbox.offsetWidth;
+                                    }
+                                    if(T<0){
+                                        T=0;
+                                    }else if(T>document.documentElement.clientHeight-oMidbox.offsetHeight){
+
+                                        T = document.documentElement.clientHeight-oMidbox.offsetHeight;
+                                    }
+                                    oMidbox.style.left = L+"px";
+                                    oMidbox.style.top =  T+"px";
+                                }
+                                document.onmouseup = function(){
+                                    document.onmousemove = document.onmouseup =  null;
+                                    if(oMidbox.releaseCapture){
+                                         oMidbox.releaseCapture();
+                                    }
+                                }
+                                return false;
+                            }
+                      }
+         </script>
+</body>
+</html>
+<!--  /*
+                          实现过程步骤：
+                          *:简易div+css布局
+                          * 注意定位position:absolute当所定位的元素没有父元素时，它会以body,html作为定位元素，注意定位元素的特点
+                          *遮罩层：background:rgba(0,0,0,.5);还有一种实现透明的方法，opacity,但是注意在Ie8以下不兼容，需要用一个过滤器：filter:Alpha(opacity="");来处理
+                          * 怎么把一个盒子在浏览器实现水平垂直居中：
+                            方法1：绝对定位：position:absolute;left:50%;top:50%;margin-left:盒子宽度的负一半，margin-left:盒子高度的父一半，通过margin外边距来实现盒子的水垂直居中，注意如果变宽线的话，还要加上边框线
+                            方法2：用js实现获取浏览器的宽度高度-盒子的宽度高度/2
+                            获取浏览器的宽度：document.documentElement.clientWidth; // 获取文档的宽度
+                            获取浏览器的高度：document.documentElement.clientHeight
+                            获取元素的宽度，obj.offsetWidth
+                            获取元素的高度：obj.offsetHeight 
+                          *封装点击函数的方法
+                          *鼠标拖动元素在可视区域内，不能跑出去
+                          实现过程：
+                          1:获取元素
+                          2:添加事件
+                          3:执行动作
+                            var oClickSet = document.getElementById("click-set");      // 获取点击设置按钮元素click-set
+                            var oMasklayer = document.getElementById("masklayer");     // 获取遮罩层元素masklayer
+                            var oMidbox = document.getElementById("midbox");           // 获取弹出遮罩层的中间盒子midbox*/
+                          
+                           /* var oClickSet,oMasklayer,oMidbox;                          // 一套语句可以声明多条语句
+                            oClickSet = document.getElementById("click-set");
+                            oMasklayer = document.getElementById("masklayer");
+                            oMidbox = document.getElementById("midbox"); -->

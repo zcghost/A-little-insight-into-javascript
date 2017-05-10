@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+		    div{
+		    	width:304px;
+		    	height:240px;
+		    	position:absolute;
+		    	left:0;
+		    	top:0;
+		    	background:red;
+		    }
+	</style>
+	<script type="text/javascript">
+		      window.onload = function(){
+		      	   var oDiv = document.getElementById("div");
+		      	   var oBtn = document.getElementById("click");
+		      	   var selfW = oDiv.offsetWidth;
+		      	   var selfH = oDiv.offsetHeight;
+		      	   alert(selfW);
+		      	   alert(selfH);
+
+		      	   oDiv.style.left= (document.documentElement.clientWidth-selfW)/2+"px";
+		      	   oDiv.style.top = (document.documentElement.clientHeight-selfH)/2+"px"; // 注意要加像素
+		      	    alert(oDiv.style.left);
+		      	    alert(oDiv.style.top);
+
+		      	   oBtn.onclick = function(){
+		      	   	    
+		      	   	    
+		      	   }
+
+		      }
+	</script>
+</head>
+<body>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" id="click" value="点击"  name="">
+         <div id="div"></div>
+</body>
+</html>
